@@ -515,79 +515,111 @@ if __name__ == '__main__':
         expected_percentage = Results['expected_percentage']
     
         print("Plotting results as number of splits increases")
+        individual = input('Would you like to see individual plots for each confidence interval? (y/n): ')
         
         split_method = methods
-        # UKF plots
+        # # UKF plots
+        # Fixed percentage, varied number of splits
+        plot1 = plt.figure()
+        ax1 = plot1.add_subplot(111)   # create an Axes inside the summary figure
+        plot1.canvas.manager.set_window_title(f'UKF, {split_method}, Confidence Interval at multiple expected percentages')
         for j in range(len(expected_percentage)):
-            # fixed 95 percent, look at actual percentage as function of number of splits
-            plt.figure()
-            for i in range(len(split_count)):
-                plt.plot(split_count[i], Final_Actual_UKF[i][j], 'o', label=f'{(split_count[i])} splits, {Final_Actual_UKF[i][j]*100:.1f}% actual')
-            plt.axhline(y=expected_percentage[j], color='r', linestyle='--', label=f'Expected {expected_percentage[j]*100:.1f}%')
-            plt.xlabel('Number of splits')
-            plt.ylim([0, 1])
-            plt.ylabel('Actual Percentage within Confidence Interval')
-            plt.title(split_method + ', UKF, Actual Percentage within Confidence Interval at ' + str(expected_percentage[j]*100) + '% expected')
-        plt.show()
+            Actual = [sublist[j] for sublist in Final_Actual_UKF]
+            Difference = [x - expected_percentage[j] for x in Actual]
+
+            if individual == 'y':
+                # Individual plot
+                fig, ax = plt.subplots()
+                fig.canvas.manager.set_window_title(f'UKF, {split_method}, Confidence Interval at {expected_percentage[j]*100:.1f}% expected')
+                ax.plot(split_count, Difference, '-o')
+                ax.axhline(y=0, color='r', linestyle='--', label='difference = 0')
+                ax.set_xlabel('Number of splits')
+                ax.set_ylabel('Difference between Actual and Expected')
+                ax.set_ylim([min(Difference) - 0.05, max(Difference) + 0.05])
+                ax.set_title(
+                    split_method
+                    + ', UKF, Difference between actual and Confidence Interval at '
+                    + str(expected_percentage[j]*100)
+                    + '% expected'
+                )
+
+            # Plot on the summary figure if condition met
+            if j == 0 or j == len(expected_percentage) - 1 or j == len(expected_percentage)//2 or j == len(expected_percentage)//4 or j == 3*len(expected_percentage)//4:
+                ax1.plot(split_count, Difference, '-o', label=f'Expected = {expected_percentage[j]*100:.1f}%')
+    
+        # finalize the summary plot
+        ax1.axhline(y=0, color='r', linestyle='--')
+        ax1.set_xlabel('Number of Splits')
+        ax1.set_ylabel('Difference between Actual and Expected')
+        ax1.legend()
+        ax1.set_title(f'{split_method}, UKF, Summary of Differences, varying number of splits')
         
-        # EKF plots
+        # Fixed number of splits, varied percentage   
+        plot2 = plt.figure()
+        ax2 = plot2.add_subplot(111)   # create an Axes inside the summary figure
+        plot2.canvas.manager.set_window_title(f'UKF, {split_method}, Difference between Actual and Expected at varying split counts')
+        for j in range(len(split_count)):
+            Difference = Final_Difference_UKF[j]
+            ax2.plot(expected_percentage, Difference, '-o', label=f'Split Count = {split_count[j]}')
+
+        # finalize the summary plot
+        ax2.axhline(y=0, color='r', linestyle='--')
+        ax2.set_xlabel('Expected Percentage')
+        ax2.set_ylabel('Difference between Actual and Expected')
+        ax2.legend()
+        ax2.set_title(f'{split_method}, UKF, Summary of Differences, varying expected percentage')
+        
+        # # EKF plots
+        # Fixed percentage, varied number of splits      
+        plot3 = plt.figure()
+        ax3 = plot3.add_subplot(111)   # create an Axes inside the summary figure
+        plot3.canvas.manager.set_window_title(f'EKF, {split_method}, Confidence Interval at multiple expected percentages')
         for j in range(len(expected_percentage)):
-            # fixed 95 percent, look at actual percentage as function of number of splits
-            plt.figure()
-            for i in range(len(split_count)):
-                plt.plot(split_count[i], Final_Actual_EKF[i][j], 'o', label=f'{(split_count[i])} splits, {Final_Actual_EKF[i][j]*100:.1f}% actual')
-            plt.axhline(y=expected_percentage[j], color='r', linestyle='--', label=f'Expected {expected_percentage[j]*100:.1f}%')
-            plt.xlabel('Number of splits')
-            plt.ylim([0, 1])
-            plt.ylabel('Actual Percentage within Confidence Interval')
-            plt.title(split_method + ', EKF, Actual Percentage within Confidence Interval at ' + str(expected_percentage[j]*100) + '% expected')
+            Actual = [sublist[j] for sublist in Final_Actual_EKF]
+            Difference = [x - expected_percentage[j] for x in Actual]
+            
+            if individual == 'y':
+                # Individual plot
+                fig, ax = plt.subplots()
+                fig.canvas.manager.set_window_title(f'EKF, {split_method}, Confidence Interval at {expected_percentage[j]*100:.1f}% expected')
+                ax.plot(split_count, Difference, '-o')
+                ax.axhline(y=0, color='r', linestyle='--', label='difference = 0')
+                ax.set_xlabel('Number of splits')
+                ax.set_ylabel('Difference between Actual and Expected')
+                ax.set_ylim([min(Difference) - 0.05, max(Difference) + 0.05])
+                ax.set_title(
+                    split_method
+                    + ', EKF, Difference between actual and Confidence Interval at '
+                    + str(expected_percentage[j]*100)
+                    + '% expected'
+                )
+
+            # Plot on the summary figure if condition met
+            if j == 0 or j == len(expected_percentage) - 1 or j == len(expected_percentage)//2 or j == len(expected_percentage)//4 or j == 3*len(expected_percentage)//4:
+                ax3.plot(split_count, Difference, '-o', label=f'Expected = {expected_percentage[j]*100:.1f}%')
+
+        # finalize the summary plot
+        ax3.axhline(y=0, color='r', linestyle='--')
+        ax3.set_xlabel('Number of splits')
+        ax3.set_ylabel('Difference between Actual and Expected')
+        ax3.legend()
+        ax3.set_title(f'{split_method}, EKF, Summary of Differences, varying number of splits')  
+        
+        # Fixed number of splits, varied percentage
+        plot4 = plt.figure()
+        ax4 = plot4.add_subplot(111)   # create an Axes inside the summary figure
+        plot4.canvas.manager.set_window_title(f'EKF, {split_method}, Difference between Actual and Expected at varying split counts')
+        for j in range(len(split_count)):
+            Difference = Final_Difference_EKF[j]
+            # Plot on the summary figure if condition met
+            
+            ax4.plot(expected_percentage, Difference, '-o', label=f'Split Count = {split_count[j]}')
+
+        # finalize the summary plot
+        ax4.axhline(y=0, color='r', linestyle='--')
+        ax4.set_xlabel('Expected Percentage')
+        ax4.set_ylabel('Difference between Actual and Expected')
+        ax4.legend()
+        ax4.set_title(f'{split_method}, EKF, Summary of Differences, varying expected percentage')
+
         plt.show()
-    
-    # plot results as number of index pairs increases
-
-    #     # plt.figure()
-    #     # for i in range(len(split_count)):
-    #     #     init_actual = Init_Actual[i][j]
-    #     #     total_splits = 3**(split_count[i])
-    #     #     plt.plot(expected_percentage, init_actual, '-o', label=f'{total_splits} splits')
-    #     # plt.xlabel('Expected Percentage within Confidence Interval')
-    #     # plt.ylabel('Actual Percentage within Confidence Interval')
-    #     # plt.title('Initial Density, Actual vs expected Percentage, ' + split_method)
-    #     # plt.xlim([min(expected_percentage), max(expected_percentage)])
-    #     # plt.ylim([0, 1])
-    #     # plt.legend()
-    #     # # save_figure("Cislunar_init_", split_method + "_actual_vs_expected", plt.gca(), plt.gcf())
-        
-    #     # plt.figure()
-    #     # for i in range(len(split_count)):
-    #     #     final_actual_ukf = Final_Actual_UKF[i][j]
-    #     #     total_splits = 3**(split_count[i])
-    #     #     plt.plot(expected_percentage, final_actual_ukf, '-x', label=f'{total_splits} splits')
-    #     # plt.xlabel('Expected Percentage within Confidence Interval')
-    #     # plt.ylabel('Difference between Actual and Expected')
-    #     # plt.title('Final Density (UKF), Difference between Actual and Expected Percentage, ' + split_method)
-    #     # plt.xlim([min(expected_percentage), max(expected_percentage)])
-    #     # plt.ylim([0, 1])
-    #     # plt.legend()
-    #     # # save_figure("Cislunar_init_", split_method + "_difference", plt.gca(), plt.gcf())
-        
-    #     # plt.figure()
-    #     # for i in range(len(split_count)):
-    #     #     final_actual_ekf = Final_Actual_EKF[i][j]
-    #     #     total_splits = 3**(split_count[i])
-    #     #     plt.plot(expected_percentage, final_actual_ekf, '-x', label=f'EKF, {total_splits} splits')
-    #     # plt.xlabel('Expected Percentage within Confidence Interval')
-    #     # plt.ylabel('Actual Percentage within Confidence Interval')
-    #     # plt.title('Final Density (EKF), Actual vs expected Percentage, ' + split_method)
-    #     # plt.xlim([min(expected_percentage), max(expected_percentage)])
-    #     # plt.ylim([0, 1])
-    #     # plt.legend()
-    #     # # save_figure("Cislunar_final_", split_method + "_actual_vs_expected", plt.gca(), plt.g    
-    
-    # print()
-
-
-# To do. better organize the plotting. create lists for the 95 percent range and things like that.
-
-
-# save results to file to easier display later
